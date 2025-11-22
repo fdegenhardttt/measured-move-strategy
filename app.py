@@ -14,19 +14,26 @@ st.markdown("Scan for A-B-C Measured Move patterns with automatic sensitivity ad
 st.sidebar.header("Configuration")
 
 # 1. Symbol Selection
-selection_mode = st.sidebar.radio("Selection Mode", ["Index", "Custom"])
+selection_mode = st.sidebar.radio("Selection Mode", ["Category", "Custom"])
 
 symbols = []
-if selection_mode == "Index":
-    index_name = st.sidebar.selectbox("Select Index", ["Dow 30", "Nasdaq Top 50"])
-    symbols = get_index_constituents(index_name)
-    st.sidebar.info(f"Loaded {len(symbols)} symbols from {index_name}")
+if selection_mode == "Category":
+    category = st.sidebar.selectbox("Select Category", [
+        "Dow 30", 
+        "Nasdaq Top 50", 
+        "Global Indices", 
+        "Crypto", 
+        "Commodities (Hard)", 
+        "Commodities (Soft)"
+    ])
+    symbols = get_index_constituents(category)
+    st.sidebar.info(f"Loaded {len(symbols)} symbols from {category}")
 else:
     custom_input = st.sidebar.text_area("Enter Symbols (comma separated)", "SPY, QQQ, IWM, NVDA, TSLA")
     symbols = [s.strip().upper() for s in custom_input.split(",") if s.strip()]
 
 # 2. Timeframe
-timeframe = st.sidebar.selectbox("Timeframe", ["1d", "1w", "1h"])
+timeframe = st.sidebar.selectbox("Timeframe", ["1m", "5m", "15m", "30m", "1h", "4h", "1d", "1w"], index=6) # Default 1d
 period, interval = get_timeframe_params(timeframe)
 
 # 3. Strategy Parameters
