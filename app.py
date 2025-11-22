@@ -7,8 +7,87 @@ from visualization import plot_interactive_chart
 
 st.set_page_config(page_title="Measured Move Scanner", layout="wide")
 
+# --- Apple Style Custom CSS ---
+st.markdown("""
+<style>
+    /* Main Background - Off-white/Light Gray */
+    .stApp {
+        background-color: #f5f5f7;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        color: #1d1d1f;
+    }
+    
+    /* Sidebar - Translucent Blur */
+    section[data-testid="stSidebar"] {
+        background-color: rgba(255, 255, 255, 0.8);
+        backdrop-filter: saturate(180%) blur(20px);
+        border-right: 1px solid #d2d2d7;
+    }
+    
+    /* Typography */
+    h1, h2, h3 {
+        color: #1d1d1f !important;
+        font-weight: 600 !important;
+        letter-spacing: -0.02em;
+    }
+    
+    h1 {
+        font-size: 48px !important;
+        margin-bottom: 0.5em;
+    }
+    
+    /* Buttons - Apple Blue Pill */
+    .stButton > button {
+        background-color: #0071e3;
+        color: white;
+        border: none;
+        border-radius: 980px; /* Pill shape */
+        padding: 8px 22px;
+        font-size: 17px;
+        font-weight: 400;
+        transition: all 0.2s ease;
+    }
+    
+    .stButton > button:hover {
+        background-color: #0077ed;
+        transform: scale(1.02);
+    }
+    
+    /* Cards/Containers - Clean White with Subtle Shadow */
+    .stDataFrame, .stPlotlyChart, div[data-testid="stExpander"] {
+        background: #ffffff;
+        border-radius: 18px;
+        padding: 20px;
+        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04);
+        border: 1px solid rgba(0, 0, 0, 0.02);
+    }
+    
+    /* Inputs & Selectboxes */
+    .stSelectbox > div > div, .stTextInput > div > div > input {
+        background-color: #ffffff !important;
+        color: #1d1d1f !important;
+        border-radius: 12px;
+        border: 1px solid #d2d2d7;
+    }
+    
+    /* Text Color Override */
+    .stMarkdown, .stText, p, label {
+        color: #1d1d1f !important;
+    }
+    
+    /* Success/Info Messages */
+    .stAlert {
+        background-color: #ffffff;
+        border-radius: 14px;
+        border: 1px solid #d2d2d7;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.03);
+    }
+    
+</style>
+""", unsafe_allow_html=True)
+
 st.title("Measured Move Scanner")
-st.markdown("Scan for A-B-C Measured Move patterns with automatic sensitivity adjustment.")
+st.markdown("### Pro-Grade Pattern Recognition")
 
 # --- Sidebar Controls ---
 st.sidebar.header("Configuration")
