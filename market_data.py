@@ -9,11 +9,17 @@ DOW_30 = [
     "MSFT", "NKE", "NVDA", "PG", "CRM", "TRV", "UNH", "VZ", "V", "WMT"
 ]
 
-NASDAQ_TOP_50 = [
-    "AAPL", "MSFT", "AMZN", "NVDA", "GOOGL", "GOOG", "META", "TSLA", "AVGO", "PEP",
-    "COST", "CSCO", "TMUS", "CMCSA", "ADBE", "TXN", "NFLX", "AMD", "QCOM", "INTC",
-    "AMGN", "HON", "INTU", "SBUX", "GILD", "BKNG", "DIOD", "MDLZ", "ADP", "ISRG",
-    "REGN", "VRTX", "LRCX", "ATVI", "PYPL", "MU", "CSX", "MELI", "MRNA", "ASML"
+NASDAQ_100 = [
+    "AAPL", "ABNB", "ADBE", "ADI", "ADP", "ADSK", "AEP", "AMAT", "AMD", "AMGN", 
+    "AMZN", "ANSS", "ASML", "AVGO", "AZN", "BIIB", "BKNG", "BKR", "CDNS", "CEG", 
+    "CHTR", "CMCSA", "COST", "CPRT", "CSCO", "CSX", "CTAS", "CTSH", "DDOG", "DLTR", 
+    "DXCM", "EA", "EXC", "FAST", "FTNT", "GEHC", "GILD", "GFS", "GOOG", "GOOGL", 
+    "HON", "IDXX", "ILMN", "INTC", "INTU", "ISRG", "JD", "KDP", "KHC", "KLAC", 
+    "LCID", "LRCX", "LULU", "MAR", "MCHP", "MDLZ", "MELI", "META", "MNST", "MRNA", 
+    "MRVL", "MSFT", "MU", "NFLX", "NVDA", "NXPI", "ODFL", "ORLY", "PANW", "PAYX", 
+    "PCAR", "PDD", "PEP", "PYPL", "QCOM", "REGN", "ROST", "SBUX", "SGEN", "SIRI", 
+    "SNPS", "SPLK", "SWKS", "TEAM", "TMUS", "TSLA", "TXN", "VRSK", "VRTX", "WBA", 
+    "WBD", "WDAY", "XEL", "ZM", "ZS"
 ]
 
 # Global Indices (Major)
@@ -71,8 +77,8 @@ def get_index_constituents(category: str) -> list[str]:
     """Returns a list of symbols for the given category."""
     if category == "Dow 30":
         return DOW_30
-    elif category == "Nasdaq Top 50":
-        return NASDAQ_TOP_50
+    elif category == "Nasdaq 100":
+        return NASDAQ_100
     elif category == "Global Indices":
         return GLOBAL_INDICES
     elif category == "Crypto":

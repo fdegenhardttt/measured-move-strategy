@@ -99,7 +99,7 @@ symbols = []
 if selection_mode == "Category":
     category = st.sidebar.selectbox("Select Category", [
         "Dow 30", 
-        "Nasdaq Top 50", 
+        "Nasdaq 100", 
         "Global Indices", 
         "Crypto", 
         "Commodities (Hard)", 
