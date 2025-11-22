@@ -7,8 +7,97 @@ from visualization import plot_interactive_chart
 
 st.set_page_config(page_title="Measured Move Scanner", layout="wide")
 
-st.title("Measured Move Trading Strategy")
-st.markdown("Scan for A-B-C Measured Move patterns with automatic sensitivity adjustment.")
+# --- iOS 26 Style Custom CSS ---
+st.markdown("""
+<style>
+    /* Main Background - Deep Futuristic Gradient */
+    .stApp {
+        background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    
+    /* Sidebar - Glassmorphism */
+    section[data-testid="stSidebar"] {
+        background-color: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(20px);
+        border-right: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    /* Typography */
+    h1, h2, h3 {
+        color: #ffffff !important;
+        font-weight: 700 !important;
+        letter-spacing: -0.5px;
+    }
+    
+    h1 {
+        background: linear-gradient(90deg, #00c6ff, #0072ff);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-size: 3rem !important;
+        padding-bottom: 1rem;
+    }
+    
+    /* Buttons - iOS Pill Style */
+    .stButton > button {
+        background: linear-gradient(90deg, #00c6ff, #0072ff);
+        color: white;
+        border: none;
+        border-radius: 30px;
+        padding: 0.5rem 2rem;
+        font-weight: 600;
+        box-shadow: 0 4px 15px rgba(0, 114, 255, 0.4);
+        transition: all 0.3s ease;
+    }
+    
+    .stButton > button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0, 114, 255, 0.6);
+    }
+    
+    /* Dataframes & Containers - Floating Cards */
+    .stDataFrame, .stPlotlyChart {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 20px;
+        padding: 1rem;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+    }
+    
+    /* Inputs & Selectboxes */
+    .stSelectbox > div > div {
+        background-color: rgba(255, 255, 255, 0.1) !important;
+        color: white !important;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    
+    .stTextInput > div > div > input {
+        background-color: rgba(255, 255, 255, 0.1) !important;
+        color: white !important;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    
+    /* Text Color Override */
+    .stMarkdown, .stText, p, label {
+        color: #e0e0e0 !important;
+    }
+    
+    /* Success/Warning Messages */
+    .stAlert {
+        background-color: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border-radius: 15px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+</style>
+""", unsafe_allow_html=True)
+
+st.title("Measured Move Scanner")
+st.markdown("### 🚀 Next-Gen Pattern Recognition")
 
 # --- Sidebar Controls ---
 st.sidebar.header("Configuration")
