@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 from dataclasses import dataclass
 from typing import List, Optional
-from indicators import dynamic_zigzag
+from indicators import dynamic_zigzag, calculate_rsi
 
 @dataclass
 class MeasuredMove:
@@ -31,7 +31,7 @@ class MeasuredMoveStrategy:
         self.pivot_types = None
         self.moves: List[MeasuredMove] = []
         
-    def analyze(self, atr_multiplier: float = 3.0, min_bars: int = 10, strict_fib: bool = False, use_ema_filter: bool = False):
+    def analyze(self, atr_multiplier: float = 3.0, min_bars: int = 10, strict_fib: bool = False, use_ema_filter: bool = False, use_volume_filter: bool = False, use_time_filter: bool = False, use_rsi_filter: bool = False):
         """
         Runs the analysis to find pivots and project measured moves.
         """
@@ -39,6 +39,11 @@ class MeasuredMoveStrategy:
         ema_200 = None
         if use_ema_filter:
             ema_200 = self.df['close'].ewm(span=200, adjust=False).mean()
+
+        # Calculate RSI if needed
+        rsi_series = None
+        if use_rsi_filter:
+            rsi_series = calculate_rsi(self.df)
 
         # 1. Identify Pivots
         self.pivots, self.pivot_types = dynamic_zigzag(self.df, atr_multiplier=atr_multiplier, min_bars=min_bars)
@@ -102,6 +107,29 @@ class MeasuredMoveStrategy:
                         if not (0.382 <= retracement_pct <= 0.786):
                             continue
 
+                    # Volume Confirmation
+                    if use_volume_filter:
+                        impulse_vol = self.df.loc[pA['date']:pB['date']]['volume'].mean()
+                        retracement_vol = self.df.loc[pB['date']:pC['date']]['volume'].mean()
+                        if retracement_vol >= impulse_vol:
+                            continue
+
+                    # Time Symmetry
+                    if use_time_filter:
+                        impulse_len = len(self.df.loc[pA['date']:pB['date']])
+                        retracement_len = len(self.df.loc[pB['date']:pC['date']])
+                        if retracement_len > (impulse_len * 2.0):
+                            continue
+
+                    # RSI Filter
+                    if use_rsi_filter and rsi_series is not None:
+                        try:
+                            rsi_val = rsi_series.loc[pC['date']]
+                            if rsi_val > 70:
+                                continue
+                        except KeyError:
+                            pass
+
                     # Project from C
                     target = pC['price'] + impulse_move
                     
@@ -149,6 +177,29 @@ class MeasuredMoveStrategy:
                     if strict_fib:
                         if not (0.382 <= retracement_pct <= 0.786):
                             continue
+
+                    # Volume Confirmation
+                    if use_volume_filter:
+                        impulse_vol = self.df.loc[pA['date']:pB['date']]['volume'].mean()
+                        retracement_vol = self.df.loc[pB['date']:pC['date']]['volume'].mean()
+                        if retracement_vol >= impulse_vol:
+                            continue
+
+                    # Time Symmetry
+                    if use_time_filter:
+                        impulse_len = len(self.df.loc[pA['date']:pB['date']])
+                        retracement_len = len(self.df.loc[pB['date']:pC['date']])
+                        if retracement_len > (impulse_len * 2.0):
+                            continue
+
+                    # RSI Filter
+                    if use_rsi_filter and rsi_series is not None:
+                        try:
+                            rsi_val = rsi_series.loc[pC['date']]
+                            if rsi_val < 30:
+                                continue
+                        except KeyError:
+                            pass
                     
                     # Project from C
                     target = pC['price'] - impulse_move

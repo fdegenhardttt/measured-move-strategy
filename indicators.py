@@ -133,3 +133,21 @@ def dynamic_zigzag(df: pd.DataFrame, atr_multiplier: float = 3.0, min_deviation:
     print(f"Dynamic Sensitivity Calculated: Deviation = {deviation:.2%}, Min Bars = {min_bars}")
     
     return zigzag_pivots(df, deviation, min_bars=min_bars)
+
+def calculate_rsi(df: pd.DataFrame, period: int = 14) -> pd.Series:
+    """
+    Calculates the Relative Strength Index (RSI).
+    """
+    delta = df['close'].diff()
+    
+    # Wilder's Smoothing (EMA)
+    gain = delta.where(delta > 0, 0)
+    loss = -delta.where(delta < 0, 0)
+    
+    avg_gain = gain.ewm(alpha=1/period, adjust=False).mean()
+    avg_loss = loss.ewm(alpha=1/period, adjust=False).mean()
+    
+    rs = avg_gain / avg_loss
+    rsi = 100 - (100 / (1 + rs))
+    
+    return rsi
