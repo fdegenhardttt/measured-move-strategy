@@ -7,97 +7,8 @@ from visualization import plot_interactive_chart
 
 st.set_page_config(page_title="Measured Move Scanner", layout="wide")
 
-# --- iOS 26 Style Custom CSS ---
-st.markdown("""
-<style>
-    /* Main Background - Deep Futuristic Gradient */
-    .stApp {
-        background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    }
-    
-    /* Sidebar - Glassmorphism */
-    section[data-testid="stSidebar"] {
-        background-color: rgba(255, 255, 255, 0.05);
-        backdrop-filter: blur(20px);
-        border-right: 1px solid rgba(255, 255, 255, 0.1);
-    }
-    
-    /* Typography */
-    h1, h2, h3 {
-        color: #ffffff !important;
-        font-weight: 700 !important;
-        letter-spacing: -0.5px;
-    }
-    
-    h1 {
-        background: linear-gradient(90deg, #00c6ff, #0072ff);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        font-size: 3rem !important;
-        padding-bottom: 1rem;
-    }
-    
-    /* Buttons - iOS Pill Style */
-    .stButton > button {
-        background: linear-gradient(90deg, #00c6ff, #0072ff);
-        color: white;
-        border: none;
-        border-radius: 30px;
-        padding: 0.5rem 2rem;
-        font-weight: 600;
-        box-shadow: 0 4px 15px rgba(0, 114, 255, 0.4);
-        transition: all 0.3s ease;
-    }
-    
-    .stButton > button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(0, 114, 255, 0.6);
-    }
-    
-    /* Dataframes & Containers - Floating Cards */
-    .stDataFrame, .stPlotlyChart {
-        background: rgba(255, 255, 255, 0.05);
-        border-radius: 20px;
-        padding: 1rem;
-        backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
-    }
-    
-    /* Inputs & Selectboxes */
-    .stSelectbox > div > div {
-        background-color: rgba(255, 255, 255, 0.1) !important;
-        color: white !important;
-        border-radius: 12px;
-        border: 1px solid rgba(255, 255, 255, 0.2);
-    }
-    
-    .stTextInput > div > div > input {
-        background-color: rgba(255, 255, 255, 0.1) !important;
-        color: white !important;
-        border-radius: 12px;
-        border: 1px solid rgba(255, 255, 255, 0.2);
-    }
-    
-    /* Text Color Override */
-    .stMarkdown, .stText, p, label {
-        color: #e0e0e0 !important;
-    }
-    
-    /* Success/Warning Messages */
-    .stAlert {
-        background-color: rgba(255, 255, 255, 0.1);
-        backdrop-filter: blur(10px);
-        border-radius: 15px;
-        border: 1px solid rgba(255, 255, 255, 0.1);
-    }
-    
-</style>
-""", unsafe_allow_html=True)
-
 st.title("Measured Move Scanner")
-st.markdown("### 🚀 Next-Gen Pattern Recognition")
+st.markdown("Scan for A-B-C Measured Move patterns with automatic sensitivity adjustment.")
 
 # --- Sidebar Controls ---
 st.sidebar.header("Configuration")
@@ -129,6 +40,7 @@ period, interval = get_timeframe_params(timeframe)
 st.sidebar.subheader("Strategy Settings")
 atr_multiplier = st.sidebar.slider("ATR Multiplier (Sensitivity)", 1.0, 10.0, 6.0, 0.5)
 min_bars = st.sidebar.slider("Min Bars Duration", 5, 50, 20, 1)
+strict_fib = st.sidebar.checkbox("Smart Recognition (Fibonacci 0.382-0.786)", True)
 
 # 4. Filtering
 st.sidebar.subheader("Filter Results")
@@ -148,7 +60,7 @@ if st.sidebar.button("Run Scan"):
         try:
             df = fetch_data(symbol, period=period, interval=interval)
             strategy = MeasuredMoveStrategy(symbol, df)
-            strategy.analyze(atr_multiplier=atr_multiplier, min_bars=min_bars)
+            strategy.analyze(atr_multiplier=atr_multiplier, min_bars=min_bars, strict_fib=strict_fib)
             
             moves = strategy.get_active_moves()
             
@@ -215,22 +127,40 @@ if st.session_state.get('scan_performed', False):
             # Just take the first one to get the plotting data.
             row = res_df[res_df["Symbol"] == selected_symbol].iloc[0]
             
+            # Let user select specific pattern
+            moves = row["Moves"]
+            pattern_options = ["All Patterns"] + [f"Pattern {i+1}: {m.direction} (Target {m.projected_target:.2f})" for i, m in enumerate(moves)]
+            selected_pattern_idx = st.selectbox("Select Pattern to View", pattern_options)
+            
+            moves_to_plot = moves
+            if selected_pattern_idx != "All Patterns":
+                # Extract index from string "Pattern 1: ..." -> index 0
+                idx = int(selected_pattern_idx.split(":")[0].replace("Pattern ", "")) - 1
+                moves_to_plot = [moves[idx]]
+                
+                # Show specific details for this pattern
+                m = moves[idx]
+                st.info(f"""
+                **Selected Pattern Analysis**
+                - **Direction**: {m.direction}
+                - **Impulse (A->B)**: {m.start_price:.2f} -> {m.mid_price:.2f}
+                - **Retracement (B->C)**: {m.mid_price:.2f} -> {m.end_price:.2f}
+                - **Target (D)**: {m.projected_target:.2f}
+                - **Retracement Ratio**: {m.retracement_pct:.1%} (Fibonacci Check)
+                """)
+            
             fig = plot_interactive_chart(
                 row["DataFrame"], 
                 row["Pivots"], 
-                row["Moves"], 
+                moves_to_plot, 
                 selected_symbol
             )
             st.plotly_chart(fig, use_container_width=True)
             
-            # Show pattern details
-            st.write(f"**Pattern Details for {selected_symbol}:**")
-            # We want to show details for ALL patterns found for this symbol, not just the one in the row if we filtered?
-            # Actually row["Moves"] contains all active moves from the strategy run.
-            # But we might want to highlight which ones passed the filter?
-            # For now, just showing all active moves on the chart is good context.
-            for m in row["Moves"]:
-                st.write(f"- **{m.direction}**: A={m.start_price:.2f}, B={m.mid_price:.2f}, C={m.end_price:.2f} -> Target={m.projected_target:.2f}")
+            if selected_pattern_idx == "All Patterns":
+                st.write(f"**All Patterns for {selected_symbol}:**")
+                for i, m in enumerate(moves):
+                     st.write(f"- **Pattern {i+1}**: {m.direction}, Target={m.projected_target:.2f}, Retracement={m.retracement_pct:.1%}")
 
 else:
     st.info("Select options in the sidebar and click 'Run Scan' to start.")

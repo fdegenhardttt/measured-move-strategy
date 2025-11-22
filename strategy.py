@@ -20,6 +20,7 @@ class MeasuredMove:
     completion_pct: float = 0.0 # How far are we to the target?
     current_price_at_analysis: float = 0.0
     proximity_to_c_pct: float = 0.0 # How close is current price to point C (Entry)?
+    retracement_pct: float = 0.0 # Retracement ratio (B-C)/(B-A)
 
 class MeasuredMoveStrategy:
     def __init__(self, symbol: str, df: pd.DataFrame):
@@ -29,7 +30,7 @@ class MeasuredMoveStrategy:
         self.pivot_types = None
         self.moves: List[MeasuredMove] = []
         
-    def analyze(self, atr_multiplier: float = 3.0, min_bars: int = 10):
+    def analyze(self, atr_multiplier: float = 3.0, min_bars: int = 10, strict_fib: bool = False):
         """
         Runs the analysis to find pivots and project measured moves.
         """
@@ -52,7 +53,7 @@ class MeasuredMoveStrategy:
             })
             
         if len(pivot_data) < 3:
-            print("Not enough pivots to detect patterns.")
+            # print("Not enough pivots to detect patterns.")
             return
             
         # Iterate through pivots to find potential active measured moves
@@ -74,16 +75,20 @@ class MeasuredMoveStrategy:
                 if pC['price'] > pA['price']: # Higher Low constraint (optional but typical for trend)
                     # Calculate Impulse (A to B)
                     impulse_move = pB['price'] - pA['price']
+                    retracement = pB['price'] - pC['price']
+                    retracement_pct = retracement / impulse_move if impulse_move != 0 else 0
                     
+                    # Smart Validation: Fibonacci Check
+                    # Healthy retracement is typically 0.382 to 0.786
+                    if strict_fib:
+                        if not (0.382 <= retracement_pct <= 0.786):
+                            continue
+
                     # Project from C
                     target = pC['price'] + impulse_move
                     
                     # Calculate Proximity
                     current_price = self.df['close'].iloc[-1]
-                    # Proximity: How far has it moved from C relative to the target distance?
-                    # Or simply % distance from C?
-                    # Let's define "Close to Entry" as being near C.
-                    # dist = (Current - C) / C
                     proximity = abs(current_price - pC['price']) / pC['price']
                     
                     move = MeasuredMove(
@@ -96,7 +101,8 @@ class MeasuredMoveStrategy:
                         projected_target=target,
                         direction="Bullish",
                         current_price_at_analysis=current_price,
-                        proximity_to_c_pct=proximity
+                        proximity_to_c_pct=proximity,
+                        retracement_pct=retracement_pct
                     )
                     self.moves.append(move)
 
@@ -105,6 +111,13 @@ class MeasuredMoveStrategy:
                 if pC['price'] < pA['price']: # Lower High constraint
                     # Calculate Impulse (A to B)
                     impulse_move = pA['price'] - pB['price'] # Positive magnitude
+                    retracement = pC['price'] - pB['price']
+                    retracement_pct = retracement / impulse_move if impulse_move != 0 else 0
+                    
+                    # Smart Validation: Fibonacci Check
+                    if strict_fib:
+                        if not (0.382 <= retracement_pct <= 0.786):
+                            continue
                     
                     # Project from C
                     target = pC['price'] - impulse_move
@@ -123,7 +136,8 @@ class MeasuredMoveStrategy:
                         projected_target=target,
                         direction="Bearish",
                         current_price_at_analysis=current_price,
-                        proximity_to_c_pct=proximity
+                        proximity_to_c_pct=proximity,
+                        retracement_pct=retracement_pct
                     )
                     self.moves.append(move)
     
