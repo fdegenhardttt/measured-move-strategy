@@ -20,6 +20,7 @@ class MeasuredMove:
     completion_pct: float = 0.0 # How far are we to the target?
     current_price_at_analysis: float = 0.0
     proximity_to_c_pct: float = 0.0 # How close is current price to point C (Entry)?
+    proximity_to_d_pct: float = 0.0 # How close is current price to point D (Target)?
     retracement_pct: float = 0.0 # Retracement ratio (B-C)/(B-A)
 
 class MeasuredMoveStrategy:
@@ -89,7 +90,8 @@ class MeasuredMoveStrategy:
                     
                     # Calculate Proximity
                     current_price = self.df['close'].iloc[-1]
-                    proximity = abs(current_price - pC['price']) / pC['price']
+                    proximity_c = abs(current_price - pC['price']) / pC['price']
+                    proximity_d = abs(current_price - target) / target
                     
                     move = MeasuredMove(
                         start_idx=pA['date'],
@@ -101,7 +103,8 @@ class MeasuredMoveStrategy:
                         projected_target=target,
                         direction="Bullish",
                         current_price_at_analysis=current_price,
-                        proximity_to_c_pct=proximity,
+                        proximity_to_c_pct=proximity_c,
+                        proximity_to_d_pct=proximity_d,
                         retracement_pct=retracement_pct
                     )
                     self.moves.append(move)
@@ -124,7 +127,8 @@ class MeasuredMoveStrategy:
                     
                     # Calculate Proximity
                     current_price = self.df['close'].iloc[-1]
-                    proximity = abs(current_price - pC['price']) / pC['price']
+                    proximity_c = abs(current_price - pC['price']) / pC['price']
+                    proximity_d = abs(current_price - target) / target
                     
                     move = MeasuredMove(
                         start_idx=pA['date'],
@@ -136,7 +140,8 @@ class MeasuredMoveStrategy:
                         projected_target=target,
                         direction="Bearish",
                         current_price_at_analysis=current_price,
-                        proximity_to_c_pct=proximity,
+                        proximity_to_c_pct=proximity_c,
+                        proximity_to_d_pct=proximity_d,
                         retracement_pct=retracement_pct
                     )
                     self.moves.append(move)

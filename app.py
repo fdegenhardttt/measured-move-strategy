@@ -123,7 +123,7 @@ strict_fib = st.sidebar.checkbox("Smart Recognition (Fibonacci 0.382-0.786)", Tr
 
 # 4. Filtering
 st.sidebar.subheader("Filter Results")
-max_proximity = st.sidebar.slider("Max Distance from Entry (Point C) %", 0.0, 20.0, 5.0, 0.5)
+max_proximity = st.sidebar.slider("Max Distance from Target (Point D) %", 0.0, 20.0, 5.0, 0.5)
 show_all = st.sidebar.checkbox("Show All (Ignore Filter)", False)
 
 # --- Main Analysis ---
@@ -144,15 +144,15 @@ if st.sidebar.button("Run Scan"):
             moves = strategy.get_active_moves()
             
             for move in moves:
-                # Filter logic
-                if show_all or (move.proximity_to_c_pct * 100 <= max_proximity):
+                # Filter logic - NOW USING PROXIMITY TO D
+                if show_all or (move.proximity_to_d_pct * 100 <= max_proximity):
                     results.append({
                         "Symbol": symbol,
                         "Direction": move.direction,
                         "Price": move.current_price_at_analysis,
                         "Entry (C)": move.end_price,
-                        "Target": move.projected_target,
-                        "Dist from Entry %": move.proximity_to_c_pct * 100,
+                        "Target (D)": move.projected_target,
+                        "Dist to Target %": move.proximity_to_d_pct * 100,
                         "Object": move, # Store object for plotting
                         "DataFrame": df,
                         "Pivots": strategy.pivots,
@@ -181,14 +181,13 @@ if st.session_state.get('scan_performed', False):
         
         # Convert to DataFrame for display
         res_df = pd.DataFrame(results)
-        display_cols = ["Symbol", "Direction", "Price", "Entry (C)", "Target", "Dist from Entry %"]
+        display_cols = ["Symbol", "Direction", "Price", "Target (D)", "Dist to Target %"]
         
         # Interactive Table
         st.dataframe(res_df[display_cols].style.format({
             "Price": "{:.2f}",
-            "Entry (C)": "{:.2f}",
-            "Target": "{:.2f}",
-            "Dist from Entry %": "{:.2f}%"
+            "Target (D)": "{:.2f}",
+            "Dist to Target %": "{:.2f}%"
         }))
         
         # --- Detailed Charts ---
