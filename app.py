@@ -117,9 +117,19 @@ period, interval = get_timeframe_params(timeframe)
 
 # 3. Strategy Parameters
 st.sidebar.subheader("Strategy Settings")
-atr_multiplier = st.sidebar.slider("ATR Multiplier (Sensitivity)", 1.0, 10.0, 6.0, 0.5)
-min_bars = st.sidebar.slider("Min Bars Duration", 5, 50, 20, 1)
+
+# Dynamic Defaults based on Timeframe
+default_multiplier = 6.0
+default_min_bars = 20
+
+if timeframe in ["1m", "5m", "15m", "30m"]:
+    default_multiplier = 8.0 # Higher sensitivity threshold for noise
+    default_min_bars = 50 # Require longer structures
+
+atr_multiplier = st.sidebar.slider("ATR Multiplier (Sensitivity)", 1.0, 10.0, default_multiplier, 0.5)
+min_bars = st.sidebar.slider("Min Bars Duration", 5, 100, default_min_bars, 1)
 strict_fib = st.sidebar.checkbox("Smart Recognition (Fibonacci 0.382-0.786)", True)
+use_ema_filter = st.sidebar.checkbox("Trend Filter (200 EMA)", False, help="Only show Bullish > EMA and Bearish < EMA")
 
 # 4. Filtering
 st.sidebar.subheader("Filter Results")
@@ -139,7 +149,7 @@ if st.sidebar.button("Run Scan"):
         try:
             df = fetch_data(symbol, period=period, interval=interval)
             strategy = MeasuredMoveStrategy(symbol, df)
-            strategy.analyze(atr_multiplier=atr_multiplier, min_bars=min_bars, strict_fib=strict_fib)
+            strategy.analyze(atr_multiplier=atr_multiplier, min_bars=min_bars, strict_fib=strict_fib, use_ema_filter=use_ema_filter)
             
             moves = strategy.get_active_moves()
             

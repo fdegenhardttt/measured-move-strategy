@@ -31,10 +31,15 @@ class MeasuredMoveStrategy:
         self.pivot_types = None
         self.moves: List[MeasuredMove] = []
         
-    def analyze(self, atr_multiplier: float = 3.0, min_bars: int = 10, strict_fib: bool = False):
+    def analyze(self, atr_multiplier: float = 3.0, min_bars: int = 10, strict_fib: bool = False, use_ema_filter: bool = False):
         """
         Runs the analysis to find pivots and project measured moves.
         """
+        # Calculate EMA 200 if needed
+        ema_200 = None
+        if use_ema_filter:
+            ema_200 = self.df['close'].ewm(span=200, adjust=False).mean()
+
         # 1. Identify Pivots
         self.pivots, self.pivot_types = dynamic_zigzag(self.df, atr_multiplier=atr_multiplier, min_bars=min_bars)
         
@@ -74,6 +79,18 @@ class MeasuredMoveStrategy:
             # Check for Bullish Measured Move (Low -> High -> Higher Low)
             if pA['type'] == -1 and pB['type'] == 1 and pC['type'] == -1:
                 if pC['price'] > pA['price']: # Higher Low constraint (optional but typical for trend)
+                    
+                    # Trend Filter Check
+                    if use_ema_filter and ema_200 is not None:
+                        # Check if Point C (Entry area) is above EMA 200
+                        # We need to find the EMA value at pC['date']
+                        try:
+                            ema_val = ema_200.loc[pC['date']]
+                            if pC['price'] < ema_val:
+                                continue # Skip if below EMA (Counter-trend)
+                        except KeyError:
+                            pass # Date might be missing if calculated differently, skip check or continue
+
                     # Calculate Impulse (A to B)
                     impulse_move = pB['price'] - pA['price']
                     retracement = pB['price'] - pC['price']
@@ -112,6 +129,17 @@ class MeasuredMoveStrategy:
             # Check for Bearish Measured Move (High -> Low -> Lower High)
             elif pA['type'] == 1 and pB['type'] == -1 and pC['type'] == 1:
                 if pC['price'] < pA['price']: # Lower High constraint
+                    
+                    # Trend Filter Check
+                    if use_ema_filter and ema_200 is not None:
+                        # Check if Point C (Entry area) is below EMA 200
+                        try:
+                            ema_val = ema_200.loc[pC['date']]
+                            if pC['price'] > ema_val:
+                                continue # Skip if above EMA (Counter-trend)
+                        except KeyError:
+                            pass
+
                     # Calculate Impulse (A to B)
                     impulse_move = pA['price'] - pB['price'] # Positive magnitude
                     retracement = pC['price'] - pB['price']
