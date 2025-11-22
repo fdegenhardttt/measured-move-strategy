@@ -79,7 +79,14 @@ if st.sidebar.button("Run Scan"):
     progress_bar.empty()
     status_text.empty()
     
-    # --- Display Results ---
+    # Store in session state
+    st.session_state['scan_results'] = results
+    st.session_state['scan_performed'] = True
+
+# --- Display Results ---
+if st.session_state.get('scan_performed', False):
+    results = st.session_state['scan_results']
+    
     if not results:
         st.warning("No patterns found matching criteria.")
     else:
@@ -101,10 +108,15 @@ if st.sidebar.button("Run Scan"):
         st.subheader("Detailed Charts")
         
         # Let user select which symbol to view from the results
-        selected_symbol = st.selectbox("Select Symbol to View Chart", res_df["Symbol"].unique())
+        # Use a key to ensure state persistence if needed, though selectbox usually handles it
+        symbol_options = res_df["Symbol"].unique()
+        selected_symbol = st.selectbox("Select Symbol to View Chart", symbol_options)
         
         if selected_symbol:
             # Get data for this symbol
+            # We might have multiple rows for the same symbol if multiple patterns, 
+            # but they share the same DF and Pivots usually.
+            # Just take the first one to get the plotting data.
             row = res_df[res_df["Symbol"] == selected_symbol].iloc[0]
             
             fig = plot_interactive_chart(
@@ -117,6 +129,10 @@ if st.sidebar.button("Run Scan"):
             
             # Show pattern details
             st.write(f"**Pattern Details for {selected_symbol}:**")
+            # We want to show details for ALL patterns found for this symbol, not just the one in the row if we filtered?
+            # Actually row["Moves"] contains all active moves from the strategy run.
+            # But we might want to highlight which ones passed the filter?
+            # For now, just showing all active moves on the chart is good context.
             for m in row["Moves"]:
                 st.write(f"- **{m.direction}**: A={m.start_price:.2f}, B={m.mid_price:.2f}, C={m.end_price:.2f} -> Target={m.projected_target:.2f}")
 
